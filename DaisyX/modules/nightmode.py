@@ -42,8 +42,8 @@ hehes = ChatBannedRights(
     send_inline=True,
     send_polls=True,
     invite_users=True,
-    pin_messages=True,
-    change_info=True,
+    pin_messages=False,
+    change_info=False,
 )
 openhehe = ChatBannedRights(
     until_date=None,
@@ -55,8 +55,8 @@ openhehe = ChatBannedRights(
     send_inline=False,
     send_polls=False,
     invite_users=True,
-    pin_messages=True,
-    change_info=True,
+    pin_messages=False,
+    change_info=False,
 )
 
 
@@ -113,7 +113,7 @@ async def job_close():
         try:
             await tbot.send_message(
                 int(warner.chat_id),
-                "`12:00 Am, Group Is Closing Till 6 Am. Night Mode Started !` \n**Powered By @DaisyXbot**",
+                "`11:00 PM, Group Is Closing Till 6 AM. Night Mode Started, Good Night all !` \n**Powered By @YMovieZNew**",
             )
             await tbot(
                 functions.messages.EditChatDefaultBannedRightsRequest(
@@ -130,8 +130,8 @@ async def job_close():
             print(f"Unable To Close Group {warner} - {e}")
 
 
-scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
-scheduler.add_job(job_close, trigger="cron", hour=23, minute=55)
+scheduler = AsyncIOScheduler(timezone="Asia/Jakarta")
+scheduler.add_job(job_close, trigger="cron", hour=23, minute=0)
 scheduler.start()
 
 
@@ -143,7 +143,7 @@ async def job_open():
         try:
             await tbot.send_message(
                 int(warner.chat_id),
-                "`06:00 Am, Group Is Opening.`\n**Powered By @DaisyXBot**",
+                "`06:00 AM, Group Is Opening, Good Morning all.`\n**Powered By @YMovieZNew**",
             )
             await tbot(
                 functions.messages.EditChatDefaultBannedRightsRequest(
@@ -155,16 +155,16 @@ async def job_open():
 
 
 # Run everyday at 06
-scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
-scheduler.add_job(job_open, trigger="cron", hour=6, minute=10)
+scheduler = AsyncIOScheduler(timezone="Asia/Jakarta")
+scheduler.add_job(job_open, trigger="cron", hour=6, minute=0)
 scheduler.start()
 
 __mod_name__ = "Night Mode"
 
 __help__ = """
 <b> The Night mode </b>
-Close your group at 12.00 a.m. and open back at 6.00 a.m.(IST)
-<i> Only available for asian countries (India Standard time)</i>
+Close your group at 23.00 p.m. and open back at 6.00 a.m.(Jakarta Timezone)
+<i> Only available for asian countries (Jakarta Timezone)</i>
 
 - /nightmode [ON/OFF]: Enable/Disable Night Mode.
 
