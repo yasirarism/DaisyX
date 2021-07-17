@@ -113,7 +113,7 @@ async def job_close():
         try:
             await tbot.send_message(
                 int(warner.chat_id),
-                "`11:00 PM, Group Is Closing Till 6 AM. Night Mode Started, Good Night all !` \n**Powered By @YMovieZNew**",
+                "`11:00 PM, Group Is Closing Till 6 AM. Night Mode Started, Good Night all !. If you want mirror file to Google Drive, join in other group in pinned message.` \n**Powered By @YMovieZNew**",
             )
             await tbot(
                 functions.messages.EditChatDefaultBannedRightsRequest(
