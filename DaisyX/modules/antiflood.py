@@ -132,7 +132,7 @@ class AntifloodEnforcer(BaseMiddleware):
 
     @classmethod
     async def do_action(cls, message: Message, database: dict):
-        action = database["action"] if "action" in database else "ban"
+        action = database.get("action", "ban")
 
         if action == "ban":
             return await ban_user(message.chat.id, message.from_user.id)
@@ -237,12 +237,8 @@ async def antiflood_expire_proc(
             await get_data.reset_cache(chat["chat_id"])
             kw = {"count": data}
             if time is not None:
-                kw.update(
-                    {
-                        "time": format_timedelta(
-                            parsed_time, locale=strings["language_info"]["babel"]
-                        )
-                    }
+                kw["time"] = format_timedelta(
+                    parsed_time, locale=strings["language_info"]["babel"]
                 )
             await message.reply(
                 strings[

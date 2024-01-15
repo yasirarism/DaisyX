@@ -54,11 +54,10 @@ async def get_filterss(_, message):
     _filters = await get_filters_names(message.chat.id)
     if not _filters:
         return
-    else:
-        msg = f"Text filters in {message.chat.title}\n"
-        for _filter in _filters:
-            msg += f"**-** `{_filter}`\n"
-        await message.reply_text(msg)
+    msg = f"Text filters in {message.chat.title}\n"
+    for _filter in _filters:
+        msg += f"**-** `{_filter}`\n"
+    await message.reply_text(msg)
 
 
 @app.on_message(filters.command("stop") & ~filters.edited & ~filters.private)
@@ -83,7 +82,7 @@ async def del_filter(_, message):
         if deleted:
             await message.reply_text(f"**Deleted filter {name}.**")
         else:
-            await message.reply_text(f"**No such filter.**")
+            await message.reply_text("**No such filter.**")
 
 
 @app.on_message(
@@ -92,8 +91,7 @@ async def del_filter(_, message):
 async def filters_re(_, message):
     try:
         if message.text[0] != "/":
-            text = message.text.lower().strip().split(" ")
-            if text:
+            if text := message.text.lower().strip().split(" "):
                 chat_id = message.chat.id
                 list_of_filters = await get_filters_names(chat_id)
                 for word in text:

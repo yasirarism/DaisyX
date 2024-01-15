@@ -68,7 +68,11 @@ def LastOnline(user: User):
 
 
 def FullName(user: User):
-    return user.first_name + " " + user.last_name if user.last_name else user.first_name
+    return (
+        f"{user.first_name} {user.last_name}"
+        if user.last_name
+        else user.first_name
+    )
 
 
 @pbot.on_message(filters.command("whois") & ~filters.edited & ~filters.bot)

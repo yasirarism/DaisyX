@@ -45,9 +45,9 @@ async def _(event):
         return
     """this method of approve system is made by @AyushChatterjee, god will curse your family if you kang it motherfucker"""
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
 
     cmd = event.text

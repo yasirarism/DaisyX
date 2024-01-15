@@ -38,11 +38,7 @@ async def direct_link_generator(message):
         await message.reply(m)
         return
 
-    if text:
-        links = re.findall(r"\bhttps?://.*\.\S+", text)
-    else:
-        return
-
+    links = re.findall(r"\bhttps?://.*\.\S+", text)
     reply = []
     if not links:
         await message.reply("No links found!")
@@ -63,9 +59,7 @@ def sourceforge(url: str) -> str:
     try:
         link = re.findall(r"\bhttps?://.*sourceforge\.net\S+", url)[0]
     except IndexError:
-        reply = "No SourceForge links found\n"
-        return reply
-
+        return "No SourceForge links found\n"
     file_path = re.findall(r"/files(.*)/download", link)
     if not file_path:
         file_path = re.findall(r"/files(.*)", link)

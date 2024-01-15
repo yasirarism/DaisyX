@@ -19,9 +19,7 @@ async def gogo(event):
     result = anime.get_search_results(args)
     buttons = []
     for i in result:
-        k = [
-            Button.inline("{}".format(i["name"]), data="search_{}".format(i["animeid"]))
-        ]
+        k = [Button.inline(f'{i["name"]}', data=f'search_{i["animeid"]}')]
         buttons.append(k)
         if len(buttons) == 99:
             break
@@ -38,7 +36,7 @@ async def search(event):
     result = anime.get_anime_details(animeid)
     episodes = result["episodes"]
     nfo = f"{animeid}?{episodes}"
-    buttons = Button.inline("Download", data="episode_{}".format(nfo))
+    buttons = Button.inline("Download", data=f"episode_{nfo}")
     text = """
 {} (Released: {})
 
@@ -78,7 +76,7 @@ async def episode(event):
     cbutton = []
     for i in range(epsd):
         nfo = f"{i}?{animeid}"
-        button = Button.inline(f"{i}", data="download_{}".format(nfo))
+        button = Button.inline(f"{i}", data=f"download_{nfo}")
         buttons.append(button)
         if len(buttons) == 4:
             cbutton.append(buttons)
@@ -96,13 +94,11 @@ async def episode(event):
     animeid = episode.strip()
     epsd = imd.strip()
     result = anime.get_episodes_link(animeid, epsd)
-    text = "You are watching Episode {} of {}:\n\nNote: Select HDP link for faster streaming.".format(
-        epsd, animeid
-    )
+    text = f"You are watching Episode {epsd} of {animeid}:\n\nNote: Select HDP link for faster streaming."
     butons = []
     cbutton = []
     for i in result:
-        if not i == "title":
+        if i != "title":
             k = Button.url(f"{i}", f"{result[i]}")
             butons.append(k)
             if len(butons) == 1:

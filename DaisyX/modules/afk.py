@@ -42,11 +42,7 @@ async def afk(message, strings):
         await message.reply(strings["afk_anon"])
         return
 
-    if not arg:
-        reason = "No reason"
-    else:
-        reason = arg
-
+    reason = "No reason" if not arg else arg
     user = await get_user_by_id(message.from_user.id)
     user_afk = await db.afk.find_one({"user": user["user_id"]})
     if user_afk:

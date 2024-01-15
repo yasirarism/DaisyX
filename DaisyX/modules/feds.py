@@ -83,9 +83,7 @@ async def get_fed_f(message):
             fed = await get_fed_by_creator(chat["chat_id"])
         else:
             fed = await db.feds.find_one({"chats": {"$in": [chat["chat_id"]]}})
-        if not fed:
-            return False
-        return fed
+        return False if not fed else fed
 
 
 async def fed_post_log(fed, text):
@@ -178,7 +176,7 @@ def get_fed_dec(func):
 
         if message.text:
             text_args = message.text.split(" ", 2)
-            if not len(text_args) < 2 and text_args[1].count("-") == 4:
+            if len(text_args) >= 2 and text_args[1].count("-") == 4:
                 if not (fed := await get_fed_by_id(text_args[1])):
                     await message.reply(
                         await get_string(real_chat_id, "feds", "fed_id_invalid")
@@ -209,7 +207,7 @@ def is_fed_owner(func):
         if user_id in [1087968824, 777000]:
             return
 
-        if not user_id == fed["creator"] and user_id != OWNER_ID:
+        if user_id not in [fed["creator"], OWNER_ID]:
             text = (await get_string(message.chat.id, "feds", "need_fed_admin")).format(
                 name=html.escape(fed["fed_name"], False)
             )
@@ -231,7 +229,7 @@ def is_fed_admin(func):
         if user_id in [1087968824, 777000]:
             return
 
-        if not user_id == fed["creator"] and user_id != OWNER_ID:
+        if user_id not in [fed["creator"], OWNER_ID]:
             if "admins" not in fed or user_id not in fed["admins"]:
                 text = (
                     await get_string(message.chat.id, "feds", "need_fed_admin")
@@ -263,7 +261,7 @@ async def new_fed(message, strings):
         await message.reply(strings["fed_name_long"])
         return
 
-    if await get_fed_by_creator(user_id) and not user_id == OWNER_ID:
+    if await get_fed_by_creator(user_id) and user_id != OWNER_ID:
         await message.reply(strings["can_only_1_fed"])
         return
 
@@ -556,7 +554,7 @@ async def fed_chat_list(message, fed, strings):
 
     for chat_id in fed["chats"]:
         chat = await db.chat_list.find_one({"chat_id": chat_id})
-        text += "* {} (<code>{}</code>)\n".format(chat["chat_title"], chat_id)
+        text += f'* {chat["chat_title"]} (<code>{chat_id}</code>)\n'
     if len(text) > 4096:
         await message.answer_document(
             InputFile(io.StringIO(text), filename="chatlist.txt"),
@@ -575,14 +573,10 @@ async def fed_admins_list(message, fed, strings):
     text = strings["fadmins_header"].format(
         fed_name=html.escape(fed["fed_name"], False)
     )
-    text += "* {} (<code>{}</code>)\n".format(
-        await get_user_link(fed["creator"]), fed["creator"]
-    )
+    text += f'* {await get_user_link(fed["creator"])} (<code>{fed["creator"]}</code>)\n'
     if "admins" in fed:
         for user_id in fed["admins"]:
-            text += "* {} (<code>{}</code>)\n".format(
-                await get_user_link(user_id), user_id
-            )
+            text += f"* {await get_user_link(user_id)} (<code>{user_id}</code>)\n"
     await message.reply(text, disable_notification=True)
 
 
@@ -722,7 +716,7 @@ async def fed_ban_user(message, fed, user, reason, strings):
     silent = False
     if get_cmd(message) == "sfban":
         silent = True
-        key = "leave_silent:" + str(message.chat.id)
+        key = f"leave_silent:{str(message.chat.id)}"
         redis.set(key, user_id)
         redis.expire(key, 30)
         text += strings["fbanned_silence"]
@@ -755,16 +749,12 @@ async def fed_ban_user(message, fed, user, reason, strings):
                 "by": message.from_user.id,
             }
             for chat_id in s_fed["chats"]:
-                if not user:
-                    continue
-
-                elif chat_id == user["user_id"]:
-                    continue
-
-                elif "chats" not in user:
-                    continue
-
-                elif chat_id not in user["chats"]:
+                if (
+                    not user
+                    or chat_id == user["user_id"]
+                    or "chats" not in user
+                    or chat_id not in user["chats"]
+                ):
                     continue
 
                 # Do not slow down other updates
@@ -986,7 +976,7 @@ async def fed_rename(message, fed, strings):
     if len(args) > 1 and args[0].count("-") == 4:
         new_name = " ".join(args[1:])
     else:
-        new_name = " ".join(args[0:])
+        new_name = " ".join(args[:])
 
     if new_name == fed["fed_name"]:
         await message.reply(strings["frename_same_name"])
@@ -1008,7 +998,7 @@ async def fed_rename(message, fed, strings):
 @get_strings_dec("feds")
 async def fban_export(message, fed, strings):
     fed_id = fed["fed_id"]
-    key = "fbanlist_lock:" + str(fed_id)
+    key = f"fbanlist_lock:{str(fed_id)}"
     if redis.get(key) and message.from_user.id not in OPERATORS:
         ttl = format_timedelta(
             timedelta(seconds=redis.ttl(key)), strings["language_info"]["babel"]
@@ -1055,7 +1045,7 @@ async def fban_export(message, fed, strings):
 @get_strings_dec("feds")
 async def importfbans_cmd(message, fed, strings):
     fed_id = fed["fed_id"]
-    key = "importfbans_lock:" + str(fed_id)
+    key = f"importfbans_lock:{str(fed_id)}"
     if redis.get(key) and message.from_user.id not in OPERATORS:
         ttl = format_timedelta(
             timedelta(seconds=redis.ttl(key)), strings["language_info"]["babel"]
@@ -1135,11 +1125,7 @@ async def importfbans_func(message, fed, strings, document=None):
         if "reason" in row:
             new["reason"] = row["reason"]
 
-        if "by" in row:
-            new["by"] = int(row["by"])
-        else:
-            new["by"] = message.from_user.id
-
+        new["by"] = int(row["by"]) if "by" in row else message.from_user.id
         if "time" in row:
             new["time"] = datetime.fromtimestamp(int(row["time"]))
         else:
@@ -1272,28 +1258,27 @@ async def fedban_check(message, fed, user, _, strings):
     text = strings["fcheck_header"]
     if message.chat.type == "private" and message.from_user.id == user["user_id"]:
         if bool(fed):
-            if bool(fban_data):
-                if "reason" not in fban_data:
-                    text += strings["fban_info:fcheck"].format(
-                        fed=html.escape(fed["fed_name"], False),
-                        date=babel.dates.format_date(
-                            fban_data["time"],
-                            "long",
-                            locale=strings["language_info"]["babel"],
-                        ),
-                    )
-                else:
-                    text += strings["fban_info:fcheck:reason"].format(
-                        fed=html.escape(fed["fed_name"], False),
-                        date=babel.dates.format_date(
-                            fban_data["time"],
-                            "long",
-                            locale=strings["language_info"]["babel"],
-                        ),
-                        reason=fban_data["reason"],
-                    )
-            else:
+            if not bool(fban_data):
                 return await message.reply(strings["didnt_fbanned"])
+            if "reason" not in fban_data:
+                text += strings["fban_info:fcheck"].format(
+                    fed=html.escape(fed["fed_name"], False),
+                    date=babel.dates.format_date(
+                        fban_data["time"],
+                        "long",
+                        locale=strings["language_info"]["babel"],
+                    ),
+                )
+            else:
+                text += strings["fban_info:fcheck:reason"].format(
+                    fed=html.escape(fed["fed_name"], False),
+                    date=babel.dates.format_date(
+                        fban_data["time"],
+                        "long",
+                        locale=strings["language_info"]["babel"],
+                    ),
+                    reason=fban_data["reason"],
+                )
         else:
             text += strings["fbanned_count_pm"].format(count=total_count)
             if total_count > 0:
@@ -1314,7 +1299,7 @@ async def fedban_check(message, fed, user, _, strings):
                 user=await get_user_link(user["user_id"])
             )
 
-        if fbanned_fed is True:
+        if fbanned_fed:
             if "reason" in fban_data:
                 text += strings["fbanned_in_fed:reason"].format(
                     fed=html.escape(fed["fed_name"], False), reason=fban_data["reason"]

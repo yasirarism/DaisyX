@@ -114,7 +114,7 @@ async def warn_func(message: Message, chat, user, text, strings, filter_action=F
 
     buttons = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
-            "⚠️ Remove warn", callback_data="remove_warn_{}".format(warn_id)
+            "⚠️ Remove warn", callback_data=f"remove_warn_{warn_id}"
         )
     )
 
@@ -285,7 +285,11 @@ async def warnmode(message, chat, strings):
             data := await db.warnmode.find_one({"chat_id": chat_id})
         ) is not None and data["mode"] == option:
             return await message.reply(strings["same_mode"])
-        if arg[0] == acceptable_args[0]:
+        if (
+            arg[0] == acceptable_args[0]
+            or arg[0] != acceptable_args[1]
+            and arg[0] == acceptable_args[2]
+        ):
             new["mode"] = option
             await db.warnmode.update_one(
                 {"chat_id": chat_id}, {"$set": new}, upsert=True
@@ -307,11 +311,6 @@ async def warnmode(message, chat, strings):
                     await db.warnmode.update_one(
                         {"chat_id": chat_id}, {"$set": new}, upsert=True
                     )
-        elif arg[0] == acceptable_args[2]:
-            new["mode"] = option
-            await db.warnmode.update_one(
-                {"chat_id": chat_id}, {"$set": new}, upsert=True
-            )
         await message.reply(strings["warnmode_success"] % (chat["chat_title"], option))
     else:
         text = ""
@@ -324,16 +323,15 @@ async def warnmode(message, chat, strings):
 
 
 async def max_warn_func(chat_id, user_id):
-    if (data := await db.warnmode.find_one({"chat_id": chat_id})) is not None:
-        if data["mode"] == "ban":
-            return await ban_user(chat_id, user_id)
-        elif data["mode"] == "tmute":
-            time = convert_time(data["time"])
-            return await mute_user(chat_id, user_id, time)
-        elif data["mode"] == "mute":
-            return await mute_user(chat_id, user_id)
-    else:  # Default
+    if (data := await db.warnmode.find_one({"chat_id": chat_id})) is None:
         return await ban_user(chat_id, user_id)
+    if data["mode"] == "ban":
+        return await ban_user(chat_id, user_id)
+    elif data["mode"] == "tmute":
+        time = convert_time(data["time"])
+        return await mute_user(chat_id, user_id, time)
+    elif data["mode"] == "mute":
+        return await mute_user(chat_id, user_id)
 
 
 async def __export__(chat_id):
@@ -353,10 +351,7 @@ async def __export__(chat_id):
 async def __import__(chat_id, data):
     if "warns_limit" in data:
         number = data["warns_limit"]
-        if number < 2:
-            return
-
-        elif number > 10000:  # Max value
+        if number < 2 or number > 10000:
             return
 
         await db.warnlimit.update_one(

@@ -16,7 +16,7 @@ def register(**args):
     r_pattern = r"^[/]"
 
     if pattern is not None and not pattern.startswith("(?i)"):
-        args["pattern"] = "(?i)" + pattern
+        args["pattern"] = f"(?i){pattern}"
 
     args["pattern"] = pattern.replace("^/", r_pattern, 1)
     stack = inspect.stack()
@@ -46,9 +46,7 @@ def register(**args):
                 return
             if check.fwd_from:
                 return
-            if check.is_group or check.is_private:
-                pass
-            else:
+            if not check.is_group and not check.is_private:
                 # print("i don't work in channels")
                 return
             users = gbanned.find({})
@@ -63,8 +61,6 @@ def register(**args):
                     LOAD_PLUG.update({file_test: [func]})
             except BaseException:
                 return
-            else:
-                pass
 
         tbot.add_event_handler(wrapper, events.NewMessage(**args))
         return wrapper
@@ -97,7 +93,7 @@ def inlinequery(**args):
     pattern = args.get("pattern", None)
 
     if pattern is not None and not pattern.startswith("(?i)"):
-        args["pattern"] = "(?i)" + pattern
+        args["pattern"] = f"(?i){pattern}"
 
     def decorator(func):
         tbot.add_event_handler(func, events.InlineQuery(**args))

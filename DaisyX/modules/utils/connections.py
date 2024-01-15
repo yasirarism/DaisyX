@@ -27,9 +27,9 @@ async def get_connected_chat(
     # only_in_groups - disable command when bot's pm not connected to any chat
     real_chat_id = message.chat.id
     user_id = from_id or message.from_user.id
-    key = "connection_cache_" + str(user_id)
+    key = f"connection_cache_{str(user_id)}"
 
-    if not message.chat.type == "private":
+    if message.chat.type != "private":
         _chat = await db.chat_list.find_one({"chat_id": real_chat_id})
         chat_title = _chat["chat_title"] if _chat is not None else message.chat.title
         # On some strange cases such as Database is fresh or new ; it doesn't contain chat data

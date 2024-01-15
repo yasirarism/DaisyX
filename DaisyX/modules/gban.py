@@ -35,22 +35,18 @@ edit_time = 3
 async def _(event):
     if event.fwd_from:
         return
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    else:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         return
 
     quew = event.pattern_match.group(1)
-    sun = "None"
     if "|" in quew:
         iid, reasonn = quew.split("|")
         cid = iid.strip()
         reason = reasonn.strip()
-    elif "|" not in quew:
-          cid = quew
-          reason = sun
+    else:
+        cid = quew
+        sun = "None"
+        reason = sun
     if cid.isnumeric():
         cid = int(cid)
     entity = await tbot.get_input_entity(cid)
@@ -88,9 +84,7 @@ async def _(event):
             )
             await event.client.send_message(
                 sed,
-                "**GLOBAL BAN UPDATE**\n\n**PERMALINK:** [user](tg://user?id={})\n**UPDATER:** `{}`**\nREASON:** `{}`".format(
-                    r_sender_id, event.sender_id, reason
-                ),
+                f"**GLOBAL BAN UPDATE**\n\n**PERMALINK:** [user](tg://user?id={r_sender_id})\n**UPDATER:** `{event.sender_id}`**\nREASON:** `{reason}`",
             )
             return
 
@@ -102,9 +96,7 @@ async def _(event):
     await k.edit("Gbanned Successfully !")
     await event.client.send_message(
         GBAN_LOGS,
-        "**NEW GLOBAL BAN**\n\n**PERMALINK:** [user](tg://user?id={})\n**BANNER:** `{}`\n**REASON:** `{}`".format(
-            r_sender_id, event.sender_id, reason
-        ),
+        f"**NEW GLOBAL BAN**\n\n**PERMALINK:** [user](tg://user?id={r_sender_id})\n**BANNER:** `{event.sender_id}`\n**REASON:** `{reason}`",
     )
 
 
@@ -112,11 +104,7 @@ async def _(event):
 async def _(event):
     if event.fwd_from:
         return
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    else:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         return
 
     quew = event.pattern_match.group(1)
@@ -154,9 +142,7 @@ async def _(event):
             await h.edit("Ungbanned Successfully !")
             await event.client.send_message(
                 GBAN_LOGS,
-                "**REMOVAL OF GLOBAL BAN**\n\n**PERMALINK:** [user](tg://user?id={})\n**REMOVER:** `{}`\n**REASON:** `{}`".format(
-                    r_sender_id, event.sender_id, reason
-                ),
+                f"**REMOVAL OF GLOBAL BAN**\n\n**PERMALINK:** [user](tg://user?id={r_sender_id})\n**REMOVER:** `{event.sender_id}`\n**REASON:** `{reason}`",
             )
             return
     await event.reply("Is that user even gbanned ?")
@@ -166,9 +152,6 @@ async def _(event):
 async def join_ban(event):
     if event.chat_id == int(sed):
         return
-    if event.chat_id == int(sed):
-        return
-    pass
     user = event.user_id
     chats = gbanned.find({})
     for c in chats:
@@ -180,9 +163,7 @@ async def join_ban(event):
                     bannerid = to_check["bannerid"]
                     await tbot(EditBannedRequest(event.chat_id, user, BANNED_RIGHTS))
                     await event.reply(
-                        "This user is gbanned and has been removed !\n\n**Gbanned By**: `{}`\n**Reason**: `{}`".format(
-                            bannerid, reason
-                        )
+                        f"This user is gbanned and has been removed !\n\n**Gbanned By**: `{bannerid}`\n**Reason**: `{reason}`"
                     )
                 except Exception as e:
                     print(e)
@@ -193,9 +174,6 @@ async def join_ban(event):
 async def type_ban(event):
     if event.chat_id == int(sed):
         return
-    if event.chat_id == int(sed):
-        return
-    pass
     chats = gbanned.find({})
     for c in chats:
         if event.sender_id == c["user"]:
@@ -207,9 +185,7 @@ async def type_ban(event):
                     EditBannedRequest(event.chat_id, event.sender_id, BANNED_RIGHTS)
                 )
                 await event.reply(
-                    "This user is gbanned and has been removed !\n\n**Gbanned By**: `{}`\n**Reason**: `{}`".format(
-                        bannerid, reason
-                    )
+                    f"This user is gbanned and has been removed !\n\n**Gbanned By**: `{bannerid}`\n**Reason**: `{reason}`"
                 )
             except Exception:
                 return

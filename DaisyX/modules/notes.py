@@ -73,7 +73,7 @@ async def get_similar_note(chat_id, note_name):
     async for note in db.notes.find({"chat_id": chat_id}):
         all_notes.extend(note["names"])
 
-    if len(all_notes) > 0:
+    if all_notes:
         check = difflib.get_close_matches(note_name, all_notes)
         if len(check) > 0:
             return check[0]
@@ -286,23 +286,22 @@ async def get_note_hashtag(message, chat, regexp=None, **kwargs):
 @clean_notes
 async def get_notes_list_cmd(message, chat, strings):
     if (
-        await db.privatenotes.find_one({"chat_id": chat["chat_id"]})
-        and message.chat.id == chat["chat_id"]
-    ):  # Workaround to avoid sending PN to connected PM
-        text = strings["notes_in_private"]
-        if not (keyword := message.get_args()):
-            keyword = None
-        button = InlineKeyboardMarkup().add(
-            InlineKeyboardButton(
-                text="Click here",
-                url=await get_start_link(f"notes_{chat['chat_id']}_{keyword}"),
-            )
-        )
-        return await message.reply(
-            text, reply_markup=button, disable_web_page_preview=True
-        )
-    else:
+        not await db.privatenotes.find_one({"chat_id": chat["chat_id"]})
+        or message.chat.id != chat["chat_id"]
+    ):
         return await get_notes_list(message, chat=chat)
+    text = strings["notes_in_private"]
+    if not (keyword := message.get_args()):
+        keyword = None
+    button = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text="Click here",
+            url=await get_start_link(f"notes_{chat['chat_id']}_{keyword}"),
+        )
+    )
+    return await message.reply(
+        text, reply_markup=button, disable_web_page_preview=True
+    )
 
 
 @get_strings_dec("notes")
@@ -402,11 +401,11 @@ async def clear_note(message, chat, strings):
                 await message.reply(text)
                 return
             else:
-                not_removed += " #" + note_name
+                not_removed += f" #{note_name}"
                 continue
 
         await db.notes.delete_one({"_id": note["_id"]})
-        removed += " #" + note_name
+        removed += f" #{note_name}"
 
     if len(note_names) > 1:
         text = strings["note_removed_multiple"].format(
@@ -479,10 +478,9 @@ async def note_info(message, chat, strings):
 
     text = strings["note_info_title"]
 
-    note_names = ""
-    for note_name in note["names"]:
-        note_names += f" <code>#{note_name}</code>"
-
+    note_names = "".join(
+        f" <code>#{note_name}</code>" for note_name in note["names"]
+    )
     text += strings["note_info_note"] % note_names
     text += strings["note_info_content"] % (
         "text" if "file" not in note else note["file"]["type"]
@@ -571,7 +569,7 @@ async def note_start(message, strings, regexp=None, **kwargs):
 @register(cmds="start", only_pm=True)
 @get_strings_dec("connections")
 async def btn_note_start_state(message, strings):
-    key = "btn_note_start_state:" + str(message.from_user.id)
+    key = f"btn_note_start_state:{str(message.from_user.id)}"
     if not (cached := redis.hgetall(key)):
         return
 
@@ -593,15 +591,12 @@ async def private_notes_cmd(message, chat, strings):
     chat_name = chat["chat_title"]
     text = str
 
-    try:
+    with suppress(IndexError):
         (text := "".join(message.text.split()[1]).lower())
-    except IndexError:
-        pass
-
     enabling = ["true", "enable", "on"]
     disabling = ["false", "disable", "off"]
-    if database := await db.privatenotes.find_one({"chat_id": chat_id}):
-        if text in enabling:
+    if text in enabling:
+        if database := await db.privatenotes.find_one({"chat_id": chat_id}):
             await message.reply(strings["already_enabled"] % chat_name)
             return
     if text in enabling:
@@ -615,10 +610,7 @@ async def private_notes_cmd(message, chat, strings):
         await message.reply(strings["disabled_successfully"] % chat_name)
     else:
         # Assume admin asked for current state
-        if database:
-            state = strings["enabled"]
-        else:
-            state = strings["disabled"]
+        state = strings["enabled"] if database else strings["disabled"]
         await message.reply(
             strings["current_state_info"].format(state=state, chat=chat_name)
         )
@@ -667,8 +659,9 @@ async def private_notes_func(message, strings):
 
 
 async def __stats__():
-    text = "* <code>{}</code> total notes\n".format(await db.notes.count_documents({}))
-    return text
+    return "* <code>{}</code> total notes\n".format(
+        await db.notes.count_documents({})
+    )
 
 
 async def __export__(chat_id):

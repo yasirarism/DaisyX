@@ -62,9 +62,9 @@ async def _(event):
         return
 
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     if not event.reply_to_msg_id:
 

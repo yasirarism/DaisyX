@@ -41,9 +41,9 @@ async def is_register_admin(chat, user):
 @register(pattern="^/gen (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -75,9 +75,9 @@ async def alive(event):
 @register(pattern="^/key (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -91,7 +91,7 @@ async def alive(event):
         await event.delete()
         end_time = datetime.datetime.now()
         pingtime = end_time - start_time
-        time = str(round(pingtime.total_seconds(), 2)) + "s"
+        time = f"{str(round(pingtime.total_seconds(), 2))}s"
         if "Invalid" in response.text:
             reply = f"SK Key : {ok}\n"
             reply += "Result: Invalid API Key\n"
@@ -118,9 +118,9 @@ async def alive(event):
 @register(pattern="^/ss (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -151,9 +151,9 @@ async def alive(event):
 @register(pattern="^/pp (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -184,9 +184,9 @@ async def alive(event):
 @register(pattern="^/ch (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -217,9 +217,9 @@ async def alive(event):
 @register(pattern="^/au (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -250,9 +250,9 @@ async def alive(event):
 @register(pattern="^/bin (.*)")
 async def alive(event):
     if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            pass
-        else:
+        if not await is_register_admin(
+            event.input_chat, event.message.sender_id
+        ):
             return
     sender = await event.get_sender()
     fname = sender.first_name
@@ -265,8 +265,6 @@ async def alive(event):
         res = response.text
         if "❌" in res:
             text = "🤬❌ INVALID BIN ❌🤬\n"
-            text += f"Checked By **{fname}**"
-            await k.edit(text)
         else:
             text = f"{res.splitlines()[0]}\n"
             text += f"{res.splitlines()[1]}\n"
@@ -275,5 +273,6 @@ async def alive(event):
             text += f"{res.splitlines()[4]}\n"
             text += f"{res.splitlines()[5]}\n"
             text += f"{res.splitlines()[6]}\n"
-            text += f"Checked By **{fname}**"
-            await k.edit(text)
+
+        text += f"Checked By **{fname}**"
+        await k.edit(text)

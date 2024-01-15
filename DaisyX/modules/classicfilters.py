@@ -65,10 +65,7 @@ async def on_snip(event):
 
             return False
 
-    snips = get_all_filters(event.chat_id)
-
-    if snips:
-
+    if snips := get_all_filters(event.chat_id):
         for snip in snips:
 
             pattern = r"( |^|[^\w])" + re.escape(snip.keyword) + r"( |$|[^\w])"
@@ -151,12 +148,12 @@ async def on_snip(event):
 
 @register(pattern="^/cfilter (.*)")
 async def on_snip_save(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if (
+        event.is_group
+        and not await can_change_info(message=event)
+        or not event.is_group
+    ):
         return
-
     name = event.pattern_match.group(1)
     msg = await event.get_reply_message()
 
@@ -225,9 +222,7 @@ async def on_snip_delete(event):
 
 @register(pattern="^/cfilters$")
 async def on_snip_list(event):
-    if event.is_group:
-        pass
-    else:
+    if not event.is_group:
         return
     all_snips = get_all_filters(event.chat_id)
 
@@ -271,7 +266,7 @@ async def on_all_snip_delete(event):
     else:
         return
     remove_all_filters(event.chat_id)
-    await event.reply(f"Classic Filter in current chat deleted !")
+    await event.reply("Classic Filter in current chat deleted !")
 
 
 file_help = os.path.basename(__file__)

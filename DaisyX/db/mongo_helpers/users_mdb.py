@@ -4,7 +4,7 @@ from DaisyX.config import get_str_key
 
 MONGO2 = get_str_key("FILTERS_MONGO", None)
 MONGO = get_str_key("MONGO_URI", required=True)
-if MONGO2 == None:
+if MONGO2 is None:
     MONGO2 = MONGO
 myclient = pymongo.MongoClient(MONGO2)
 mydb = myclient["Daisy"]
